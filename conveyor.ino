@@ -1,11 +1,12 @@
 #include <ESP32Servo.h>
 #include <PubSubClient.h>
+#include <Arduino.h>
 #include <WiFi.h>
 
 // MQTT Configuration
 
-const char* ssid = "Wokwi-GUEST";
-const char* password = "";
+const char* ssid = "Kiana";
+const char* password = "1sampai8";
 const char* mqtt_server = "test.mosquitto.org";
 const int port = 1883;
 
@@ -18,33 +19,34 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 // Define pin connections
-#define IR_SENSOR_PIN 2
-#define SERVO_PIN_A 13
+#define IR_SENSOR_PIN 15
+#define SERVO_PIN_A 2
 #define SERVO_PIN_B 4
 
 Servo servoA;
 Servo servoB;
 
 // Definisi pin untuk motor 1
-#define MOTOR1_PIN1 2
-#define MOTOR1_PIN2 4
-#define MOTOR1_ENABLE 15
+#define MOTOR1_PIN1 22
+#define MOTOR1_PIN2 21
+#define MOTOR1_ENABLE 23
 
 // Definisi pin untuk motor 2
-#define MOTOR2_PIN1 5
+#define MOTOR2_PIN1 19
 #define MOTOR2_PIN2 18
-#define MOTOR2_ENABLE 19
+#define MOTOR2_ENABLE 5
+
+int motorSpeed = 98;
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Pesan diterima [");
   Serial.print(topic);
   Serial.print("] ");
   
-  for (int i = 0; i < length; i++) {
-    mqttMessage = (char)payload[i];
+  for (int i = 0; i < length ; i++) {
+    mqttMessage += (char)payload[i];
   }
 
-  Serial.println(mqttMessage);
 }
 
 void setup_wifi() {
@@ -71,7 +73,7 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Menghubungkan ke broker MQTT...");
 
-    if (client.connect("ESP32Client")) {
+    if (client.connect("uPesy ESP32 Wroom DevKit")) {
       Serial.println("Terhubung");
       client.subscribe(topic_conveyor);
     } else {
@@ -128,28 +130,40 @@ void loop() {
     digitalWrite(MOTOR2_PIN2, LOW);
     analogWrite(MOTOR1_ENABLE, motorSpeed);
     analogWrite(MOTOR2_ENABLE, motorSpeed);
-    delay(2000);
+    delay(500);
 
     int irValue = digitalRead(IR_SENSOR_PIN);
 
+    Serial.println(mqttMessage);
+
     if (irValue == LOW) {
+        digitalWrite(MOTOR1_PIN1, LOW);
+        digitalWrite(MOTOR1_PIN2, LOW);
+        digitalWrite(MOTOR2_PIN1, LOW);
+        digitalWrite(MOTOR2_PIN2, LOW);
+        delay(1000);
+
         Serial.println("Object detected!");
 
-        if(mqttMessage == "B3"){
-            servoA.write(180);
-            delay(500);
-        } else if(mqttMessage == "Anorganik") {
-            servoB.write(180);
-            delay(500);
+        if(String(mqttMessage) == "B3"){
+            Serial.println("Servo A Active.");
+            servoA.write(145);
+            servoB.write(90);
+        } else if(String(mqttMessage) == "Anorganik") {
+            Serial.println("Servo B Active.");
+            servoB.write(150);
+            servoA.write(90);
         }
+
+        if(String(mqttMessage) == "Organik"){
+            Serial.println("Two Servo Unactive.");
+            servoA.write(90);
+            servoB.write(90);
+        }
+
+        mqttMessage = "";
 
     } else {
         Serial.println("No object detected.");
-        
-        servoA.write(90);
-        delay(500);
-        
-        servoB.write(90);
-        delay(500);
     }
 }

@@ -80,17 +80,17 @@ while run:
             st.write(f"Class: {label}")
             st.write(f"Confidence: {confidence * 100:.2f}%")
 
-            if confidence >= CONFIDENCE_THRESHOLD_TO_DB:
-                send_to_mqtt(MQTT_BROKER, MQTT_PORT, MQTT_TOPIC, f"{label} - {confidence}")
+            # if confidence >= CONFIDENCE_THRESHOLD_TO_DB:
+                # send_to_mqtt(MQTT_BROKER, MQTT_PORT, MQTT_TOPIC, f"{label} - {confidence}")
 
-                camera.release()
+                # camera.release()
                 
-                with message_placeholder:
-                    st.write("Data sent to MQTT. Pausing camera for 5 seconds.")
+                # with message_placeholder:
+                #     st.write("Data sent to MQTT. Pausing camera for 5 seconds.")
                 
-                time.sleep(5)
-                message_placeholder.empty()
-                camera = cv2.VideoCapture(1)
+                # time.sleep(5)
+                # message_placeholder.empty()
+                # camera = cv2.VideoCapture(1)
         else:
             st.write("Predictions:")
             st.write("Confidence below threshold, no prediction displayed.")
